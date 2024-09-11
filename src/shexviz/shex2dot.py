@@ -11,46 +11,6 @@ symbol["iri"]="diamond"
 symbol["bnode"]='point'
 symbol["oneof"]='record'
 
-shex = """
-PREFIX my: <http://my.example/ns#>
-PREFIX agschemas: <https://agschemas.org/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX nalt: <https://lod.nal.usda.gov/nalt/>
-PREFIX dct: <http://purl.org/dc/terms/>
-PREFIX schema: <http://schema.org/>
-PREFIX qudt: <http://qudt.org/schema/qudt/>
-
-<#Location> {
-  a [nalt:52296] ;
-  dct:identifier xsd:string ;
-  schema:latitude my:LATITUDE ;
-  schema:longitude my:LONGITUDE ;
-  schema:elavation my:FOOT ;
-}
-
-<#HarvestLocation> EXTENDS @<#Location> {
-  agschemas:nearbyWeatherStation @<#WeatherStation> + ;
-}
-
-<#WeatherStation> EXTENDS @<#Location> {
-}
-
-<#WeatherAssociation> {
-  my:growthSite @<#Location> ;
-  my:weatherStation @<#WeatherStation> ;
-  my:radius my:MILE ;
-  my:relevance xsd:decimal ; # 0: worst e.g different climate, 1: best
-}
-
-<#WeatherSample> {
-  my:weatherStation @<#WeatherStation> ;
-  my:timestamp xsd:dateTime ;
-  my:minTemp my:DEG_F ;
-  my:maxTemp my:DEG_F ; 
-  my:precipitation my:IN ;
-}
-  """
-
 def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
     def process_tc(tc, shape_id):
         dotschema.node(startshape.replace(":", ""), startshape, shape=symbol["iri"])
@@ -63,6 +23,8 @@ def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
                 arrowhead = "crowtee"
             elif tc.max == -1 and tc.min == 0:
                 arrowhead = "crowdot"
+            else:
+                arrowhead = "normal"
             if isinstance(tc.valueExpr, IRIREF):
                 node = tc.valueExpr
                 predicate = tc.predicate
@@ -162,5 +124,47 @@ def save_graphviz(dotschema, filename):
     return dotschema.render(filename)
 
 
-view_graphviz(shex2dot(shex, "bloembloem"))
+# call when used as a standalone script
+if __name__ == "__main__": 
+
+    shex = """
+        PREFIX my: <http://my.example/ns#>
+        PREFIX agschemas: <https://agschemas.org/>
+        PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+        PREFIX nalt: <https://lod.nal.usda.gov/nalt/>
+        PREFIX dct: <http://purl.org/dc/terms/>
+        PREFIX schema: <http://schema.org/>
+        PREFIX qudt: <http://qudt.org/schema/qudt/>
+        
+        <#Location> {
+          a [nalt:52296] ;
+          dct:identifier xsd:string ;
+          schema:latitude my:LATITUDE ;
+          schema:longitude my:LONGITUDE ;
+          schema:elavation my:FOOT ;
+        }
+        
+        <#HarvestLocation> EXTENDS @<#Location> {
+          agschemas:nearbyWeatherStation @<#WeatherStation> + ;
+        }
+        
+        <#WeatherStation> EXTENDS @<#Location> {
+        }
+        
+        <#WeatherAssociation> {
+          my:growthSite @<#Location> ;
+          my:weatherStation @<#WeatherStation> ;
+          my:radius my:MILE ;
+          my:relevance xsd:decimal ; # 0: worst e.g different climate, 1: best
+        }
+        
+        <#WeatherSample> {
+          my:weatherStation @<#WeatherStation> ;
+          my:timestamp xsd:dateTime ;
+          my:minTemp my:DEG_F ;
+          my:maxTemp my:DEG_F ; 
+          my:precipitation my:IN ;
+        }
+    """
+    view_graphviz(shex2dot(shex, "bloembloem"))
 
